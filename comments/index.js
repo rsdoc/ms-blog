@@ -5,25 +5,28 @@ const cors = require('cors');
 
 const app = express();
 
-const comments = {};
+const commentsByPostId = {};
 
 app.use(cors());
 app.use(bodyParser.json());
 
 // get all comments by post
 app.get('/posts/:id/comments', (req, res) => {
-  res.send(comments);
+  res.send(commentsByPostId[req.params.id] || []);
 });
 
 // create comments for post by id
 app.post('/posts/:id/comments', (req, res) => {
-  // create the post here
-  const id = randomBytes(4).toString('hex');
-  const { postId, content } = req.body;
+  const commentId = randomBytes(4).toString('hex');
+  const { content } = req.body;
 
-  comments[id] = { id, postId, content };
+  const comments = commentsByPostId[req.params.id] || [];
 
-  res.status(201).send(comments[id]);
+  comments.push({ id: commentId, content });
+
+  commentsByPostId[req.params.id] = comments;
+
+  res.status(201).send(comments);
 });
 
 app.listen(4100, () => {
