@@ -6,7 +6,7 @@ export default ({ postId }) => {
   const submit = async (evt) => {
     evt.preventDefault();
 
-    await axios.post(`http://localhost:4100/posts/${postId}/comments`, {
+    await axios.post(`http://localhost:4001/posts/${postId}/comments`, {
       content,
     });
 
