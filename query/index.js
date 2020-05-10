@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const axios = require('axios');
 
+const { eventHandler } = require('./handle-events');
 const app = express();
 
 const posts = {};
@@ -15,24 +17,18 @@ app.get('/posts', (req, res) => {
 
 app.post('/events', (req, res) => {
   const { type, data } = req.body;
-
-  if (type === 'PostCreated') {
-    const { id, title } = data;
-
-    posts[id] = { id, title, comments: [] };
-  }
-
-  if (type === 'CommentCreated') {
-    const { id, content, postId } = data;
-
-    const post = posts[postId];
-
-    post.comments.push({ id, content });
-  }
-
+  eventHandler(type, data, posts);
   res.send({});
 });
 
-app.listen(4002, () => {
-  console.log(`Post Server is running at the port 4002`);
+app.listen(4002, async () => {
+  console.log(`Query Server is running at the port 4002`);
+
+  // fetch all th events in case of service failure
+  const events = await axios.get(`http://localhost:4004/events`);
+
+  for (let evt of events.data) {
+    console.log('Processing event of type : ', evt.type);
+    eventHandler(evt.type, evt.data, posts);
+  }
 });
